@@ -1,0 +1,16 @@
+2022-09-27 20:33:32,165 ERROR :: Error while making GET request to /fapi/v1/account: {'code': -2015, 'msg': 'Invalid API-key, IP, or permissions for action, request ip: 5.46.5.147'} (error code 401)
+2022-09-27 20:33:32,167 INFO :: Binance Futures Client successfully initialized
+2022-09-27 20:33:34,213 INFO :: Binance connection opened
+2022-09-27 20:33:34,724 WARNING :: Binance Websocket connection closed
+2022-09-27 20:33:38,617 INFO :: Binance connection opened
+2022-09-27 20:33:39,131 WARNING :: Binance Websocket connection closed
+2022-09-27 20:33:42,985 INFO :: Binance connection opened
+2022-09-27 20:33:43,528 WARNING :: Binance Websocket connection closed
+2022-09-27 20:33:47,044 INFO :: Binance connection opened
+2022-09-27 20:33:47,379 WARNING :: Binance Websocket connection closed
+2022-09-27 20:33:51,421 INFO :: Binance connection opened
+2022-09-27 20:33:51,928 WARNING :: Binance Websocket connection closed
+2022-09-27 20:33:55,411 INFO :: Binance connection opened
+2022-09-27 20:33:55,817 WARNING :: Binance Websocket connection closed
+2022-09-27 20:33:59,946 INFO :: Binance connection opened
+2022-09-27 20:34:00,424 WARNING :: Binance Websocket connection closed
