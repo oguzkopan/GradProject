@@ -13,7 +13,9 @@ end = '2019-12-31'
 st.title('Stock Trend Prediction')
 
 user_input = st.text_input('Enter Stock Ticker', 'AAPL')
-df = yf.download(user_input, start, end)
+start_input = st.text_input('Enter Start Date', '2020-01-01')
+end_input = st.text_input('Enter End Date', '2023-01-01')
+df = yf.download(user_input, start_input, end_input)
 
 
 #Describing Data
@@ -64,7 +66,7 @@ for i in range(100, data_training_array.shape[0]):
 x_train, y_train = np.array(x_train), np.array(y_train)
 """
 #Load My model
-model = load_model('keras_model.keras')
+model = load_model('keras_model.h5')
 
 #Testing part
 past_100_days = data_training.tail(100)
