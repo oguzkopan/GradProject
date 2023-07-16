@@ -7,7 +7,6 @@ import streamlit as st
 import plotly.graph_objects as go
 from datetime import datetime
 import pandas_ta as ta
-import holidays.financial
 
 dataset_name = st.sidebar.selectbox(
     'Select Dataset',
@@ -56,9 +55,9 @@ plt.plot(ma100)
 plt.plot(df.Close, 'b')
 st.pyplot(fig)
 
-st.subheader('Closing Price vs Time Chart with 100MA & 200MA')
-ma100 = df.Close.rolling(100).mean()
-ma200 = df.Close.rolling(200).mean()
+st.subheader('Closing Price vs Time Chart with 50MA & 100MA')
+ma100 = df.Close.rolling(50).mean()
+ma200 = df.Close.rolling(100).mean()
 fig = plt.figure(figsize = (12,6))
 plt.plot(ma100)
 plt.plot(ma200)
@@ -124,12 +123,11 @@ from prophet import Prophet
 import copy
 
 #Check if NA values are in data
-df=df[df['volume']!=0]
+df=df[df['Volume']!=0]
 df.reset_index(drop=True, inplace=True)
 df.isna().sum()
 df['y'] = df['Close']
-#df['ds']=pd.to_datetime(df['ds'], format = '%d.%m.%Y %H:%M:%S').dt.date #for daily timeframe
-df['ds']=pd.to_datetime(df['Date'], format = '%d.%m.%Y')
+df['ds']=pd.to_datetime(df['Date'])
 
 def prophet_signal(df, l, backcandles, frontpredictions, diff_limit, signal):
     dfsplit = copy.deepcopy(df[l-backcandles:l+1])
@@ -175,10 +173,13 @@ df['yhathigh'] = df['yhathigh'].shift(+1)
 df['yhat'] = df['yhat'].shift(+1)
 
 from matplotlib import pyplot as plt
-x1 = 200
-x2 = 250
-plt.figure(figsize=(18,6))
-plt.plot(df['ds'].iloc[x1:x2],df['yhatlow'].iloc[x1:x2], label="Prediction", marker='o')
-plt.fill_between(df['ds'].iloc[x1:x2], df['yhat'].iloc[x1:x2], df['yhathigh'].iloc[x1:x2], color='b', alpha=.1)
+
+x1 = df.shape[0] - 100
+x2 = df.shape[0]
+st.subheader('Facebook Prophet Predictions')
+fig3 = plt.figure(figsize=(18,6))
+plt.plot(df['ds'].iloc[x1:x2],df['yhat'].iloc[x1:x2], label="Prediction", marker='o')
+plt.fill_between(df['ds'].iloc[x1:x2], df['yhatlow'].iloc[x1:x2], df['yhathigh'].iloc[x1:x2], color='b', alpha=.1)
 plt.plot(df['ds'].iloc[x1:x2], df['y'].iloc[x1:x2], label = "Market", marker='o')
 plt.legend(loc="upper left")
+st.pyplot(fig3)
