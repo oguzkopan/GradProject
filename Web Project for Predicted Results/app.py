@@ -12,15 +12,15 @@ import pandas_ta as ta
 st.title('Stock Trend Prediction')
 
 user_input = st.text_input('Enter Stock Ticker', 'AAPL')
-start_input = st.text_input('Enter Start Date', '2020-01-01')
-end_input = st.text_input('Enter End Date', '2023-01-01')
+start_input = st.text_input('Enter Start Date', '2015-01-01')
+end_input = st.text_input('Enter End Date', '2023-07-07')
 df = yf.download(user_input, start_input, end_input)
-df = df.reset_index()   
-df['RSI'] = ta.rsi(df.Close, length=12)
+df = df.reset_index()  
 
 #Describing Data
 st.subheader(user_input + ' Data from ' + start_input + ' to ' + end_input)
 st.write(df.describe())
+df
 
 #Visualizations
 st.subheader('Closing Price vs Time Chart in Candlestick')
@@ -67,13 +67,7 @@ data_training_array = scaler.fit_transform(data_training)
 x_train = []
 y_train = []
 
-"""
-for i in range(100, data_training_array.shape[0]):
-    x_train.append(data_training_array[i-100: i])
-    y_train.append(data_training_array[i, 0])
-    
-x_train, y_train = np.array(x_train), np.array(y_train)
-"""
+
 #Load My model
 model = load_model('keras_model.h5')
 
@@ -106,9 +100,20 @@ plt.xlabel('Time')
 plt.ylabel('Price')
 plt.legend()
 st.pyplot(fig2)
+array1 = np.reshape(y_test, (-1,))
+array2 = np.reshape(y_predicted, (-1,))
+lstm_predictions = pd.DataFrame({'Original Price': array1, 'Predicted Price': array2})
+lstm_predictions
 
 #################  PECNET    #################
-st.subheader('PECNET Predictions vs Original')
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import yfinance as yf
+#from keras.models import load_model
+import plotly.graph_objects as go
+from datetime import datetime
+import pandas_ta as ta
 
 import pandas as pd
 from datetime import timedelta
@@ -601,6 +606,10 @@ def pecnet():
     return final_y_test, final_y_train, input_data
 
 
+
+df = yf.download('AAPL', '2015-01-01', '2023-07-07')
+df = df.reset_index()
+
 frame = df
 frame = frame.iloc[:,4:5]
 #frame.columns = ['Time', 'Open', 'High', 'Low', 'Close', 'Volume']
@@ -614,35 +623,46 @@ print("Prediction is:",final_y_test[-1])
 df2 = pd.DataFrame(columns=['date', 'real', 'prediction'])  # DataFrame to be updated
 
 start_index = len(df) - len(final_y_test)
-end_index = len(df) - 1
+end_index = len(df) - 1  # Subtract 1 to include the last date
 
+# Adjust the length of input_data to match the desired range
 input_data_adjusted = input_data[-(end_index-start_index+1):]
 
+# Assign values from the 'Date' column of df to the 'date' column of df2
 df2['date'] = df['Date'].values[start_index:end_index+1]
 
+# Assign values to the 'real' column of df2
 df2['real'] = input_data_adjusted
 
+# Assign values to the 'prediction' column of df2
 df2['prediction'] = final_y_test
+
 df2.loc[max(df2.index)+1, :] = None
+
 df2['prediction'] = df2.prediction.shift(1)
+# Convert the 'date' column to datetime type
+df2['date'] = pd.to_datetime(df2['date'])
+
+# Find the last valid date in the 'date' column
+last_valid_date = df2['date'].dropna().iloc[-1]
+
+# Fill the NaN value in the 'date' column with the next day after the last valid date
+df2['date'].fillna(last_valid_date + pd.DateOffset(days=1), inplace=True)
 
 #Visualizations
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-# plotting close prices
 
-# Change the index of the DataFrame
-df2.set_index('date', inplace=True)
-
-x1 = df2.shape[0] - 100
-x2 = df2.shape[0]
-st.subheader('Real vs Predicted in Test Data')
+st.subheader('[PECNET] Real vs Predicted in Test Data')
 fig4 = plt.figure(figsize=(18,6))
-plt.plot(df2.index, df2['prediction'], label="Prediction", marker='o')
-plt.plot(df2.index, df2['real'], label = "Real", marker='o')
+plt.plot(df2.date, df2['prediction'], label="Prediction", marker='o')
+plt.plot(df2.date, df2['real'], label = "Real", marker='o')
 plt.legend(loc="upper left")
 st.pyplot(fig4)
+
+
+
 
 
 ########Facebook Prophet#########
