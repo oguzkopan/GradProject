@@ -7,7 +7,9 @@ import streamlit as st
 import plotly.graph_objects as go
 from datetime import datetime
 import pandas_ta as ta
-
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime, timedelta
 
 st.title('Stock Trend Prediction')
 
@@ -92,7 +94,18 @@ y_test = y_test * scale_factor[0]
 
 
 #Final Graph
-st.subheader('Predictions vs Original')
+st.subheader('[LSTM] Predictions vs Original')
+array1 = np.reshape(y_test, (-1,))
+array2 = np.reshape(y_predicted, (-1,))
+lstm_predictions = pd.DataFrame({'Original Price': array1, 'Predicted Price': array2})
+lstm_predictions
+
+fig4 = plt.figure(figsize=(18,6))
+plt.plot(lstm_predictions.index, lstm_predictions['Predicted Price'], label="Prediction", marker='o')
+plt.plot(lstm_predictions.index, lstm_predictions['Original Price'], label = "Real", marker='o')
+plt.legend(loc="upper left")
+st.pyplot(fig4)
+
 fig2 = plt.figure(figsize=(12,6))
 plt.plot(y_test, 'b', label= 'Original Price')
 plt.plot(y_predicted, 'r', label='Predicted Price')
@@ -100,10 +113,8 @@ plt.xlabel('Time')
 plt.ylabel('Price')
 plt.legend()
 st.pyplot(fig2)
-array1 = np.reshape(y_test, (-1,))
-array2 = np.reshape(y_predicted, (-1,))
-lstm_predictions = pd.DataFrame({'Original Price': array1, 'Predicted Price': array2})
-lstm_predictions
+
+
 
 #################  PECNET    #################
 import numpy as np
@@ -650,9 +661,6 @@ last_valid_date = df2['date'].dropna().iloc[-1]
 df2['date'].fillna(last_valid_date + pd.DateOffset(days=1), inplace=True)
 
 #Visualizations
-import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
 
 st.subheader('[PECNET] Real vs Predicted in Test Data')
 fig4 = plt.figure(figsize=(18,6))
