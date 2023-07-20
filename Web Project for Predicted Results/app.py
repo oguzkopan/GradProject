@@ -317,15 +317,39 @@ def main():
     st.dataframe(df, use_container_width=True)
 
     if page == "Stock Details":
-        home_page(df)
+        st.title("Stock Details Page")
+        # Call the respective page function and display a "Processing" notification
+        with st.spinner("Processing..."):
+            home_page(df)
+        st.success("Processing complete!")
+
     elif page == "LSTM Results":
-        lstm_page(df)
+        st.title("LSTM Results Page")
+        # Call the respective page function and display a "Processing" notification
+        with st.spinner("Processing..."):
+            lstm_page(df)
+        st.success("Processing complete!")
+
     elif page == "Facebook Prophet":
-        facebook_prophet_page(df)
+        st.title("Facebook Prophet Page")
+        # Call the respective page function and display a "Processing" notification
+        with st.spinner("Processing..."):
+            facebook_prophet_page(df)
+        st.success("Processing complete!")
+
     elif page == "PECNET":
-        pecnet_page(df)
+        st.title("PECNET Page")
+        # Call the respective page function and display a "Processing" notification
+        with st.spinner("Processing..."):
+            pecnet_page(df)
+        st.success("Processing complete!")
+
     elif page == "Backtest Results":
-        backtest_page(df)
+        st.title("Backtest Results Page")
+        # Call the respective page function and display a "Processing" notification
+        with st.spinner("Processing..."):
+            backtest_page(df)
+        st.success("Processing complete!")
 
 if __name__ == "__main__":
     main()
