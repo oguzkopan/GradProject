@@ -7,6 +7,7 @@ import yfinance as yf
 import plotly.graph_objects as go
 from datetime import datetime
 import pandas_ta as ta
+import streamlit as st
 
 import pandas as pd
 from datetime import timedelta
@@ -87,7 +88,7 @@ def four_wavelets(training):
 
     return training
 
-def pecnet():
+def pecnet(train_test_proportion):
     #network configurations
     hidden1=32
     second_layer1=32
@@ -146,7 +147,7 @@ def pecnet():
 
     #division of data set into training and test data set
     N=len(input_data)
-    division_of_training=0.95
+    division_of_training=train_test_proportion
     input_train=input_data_average[:int(N*division_of_training)]
     input_test=input_data_average[int(N*division_of_training):int(N*1)]
 

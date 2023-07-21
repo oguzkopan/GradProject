@@ -192,6 +192,8 @@ def facebook_prophet_page(df):
 
     from matplotlib import pyplot as plt
 
+    st.dataframe(df, use_container_width=True)
+
     x1 = df.shape[0] - 100
     x2 = df.shape[0]
     st.subheader('Facebook Prophet Predictions')
@@ -205,7 +207,7 @@ def facebook_prophet_page(df):
 
 
 
-def pecnet_page(df):
+def pecnet_page(df, train_test_proportion):
     st.title("PECNET")
     # Your content for the settings page goes here...
     #################  PECNET    #################
@@ -217,7 +219,8 @@ def pecnet_page(df):
     #frame.index = pd.to_datetime(frame.index, unit='ms')
 
     frame.to_csv('/home/oguz/Desktop/GradProject-main/Web Project for Predicted Results/file1.csv', float_format='%.6f', header=False, index=False)
-    final_y_test, final_y_train, input_data = pecnet()
+    final_y_test, final_y_train, input_data = pecnet(train_test_proportion)
+    st.write(f"Next Day Prediction: {final_y_test[-1]}")
     print("Prediction is:",final_y_test[-1])
 
     df2 = pd.DataFrame(columns=['date', 'real', 'prediction'])  # DataFrame to be updated
@@ -250,6 +253,7 @@ def pecnet_page(df):
     df2['date'].fillna(last_valid_date + pd.DateOffset(days=1), inplace=True)
 
     #Visualizations
+    st.dataframe(df2, use_container_width=True)
 
     st.subheader('[PECNET] Real vs Predicted in Test Data')
     fig4 = plt.figure(figsize=(18,6))
@@ -258,6 +262,25 @@ def pecnet_page(df):
     plt.legend(loc="upper left")
     st.pyplot(fig4)
 
+    st.write(f"Current Price is: {df2['real'].iloc[-2]}")
+    st.write(f"Next Day's Close Prediction: {final_y_test[-1]}")
+
+    if  final_y_test[-1] > df2['real'].iloc[-2]:
+        text = "Suggesting to Buy"
+        color = "green"
+
+        # Create a box with custom colored text using Markdown
+        styled_text = f'<div style="color: {color}; font-size: 24px; padding: 10px; border: 1px solid {color}; border-radius: 5px;">{text}</div>'
+        st.markdown(styled_text, unsafe_allow_html=True)
+    else:
+        text = "Suggesting to Sell"
+        color = "red"
+
+        # Create a box with custom colored text using Markdown
+        styled_text = f'<div style="color: {color}; font-size: 24px; padding: 10px; text-align: center; border: 1px solid {color}; border-radius: 5px;">{text}</div>'
+        st.markdown(styled_text, unsafe_allow_html=True)
+
+
     dict = {'date': 'date', 'real': 'price', 'prediction': 'pred'}
     df2.rename(columns=dict, inplace=True)
     df2.drop(index=df2.index[0], axis=0, inplace=True)
@@ -265,11 +288,11 @@ def pecnet_page(df):
 
 
 
-def backtest_page(df):
+def backtest_page(df, user_input):
     st.header('Backtest Results')
     st.subheader('Pecnet Test Results')
 
-    bc = IterativeBacktest('APPL', "2020-01-01", "2023-12-12", 10000, use_prediction = True, csv_file_path = "backtest_pecnet.csv")
+    bc = IterativeBacktest(user_input, "2020-01-01", "2023-12-12", 10000, use_prediction = True, csv_file_path = "backtest_pecnet.csv")
 
     bc.test_my_strategy()
 
@@ -293,8 +316,11 @@ def main():
     st.sidebar.title("AI Based Trading Application")
     page = st.sidebar.radio("Select a page:", ("Stock Details", "LSTM Results", "Facebook Prophet", "PECNET", "Backtest Results"))
 
-    # Use st.sidebar.text_input for the Stock Ticker
-    user_input = st.sidebar.text_input('Enter Stock Ticker', 'AAPL')
+    # List of available Yahoo Finance tickers
+    yahoo_tickers = ['AAPL', 'GOOGL', 'AMZN', 'F', 'T']
+
+    # Use st.sidebar.radio for the Stock Ticker
+    user_input = st.sidebar.selectbox('Select Stock Ticker', yahoo_tickers)
 
     # Use st.sidebar.date_input for the Start Date
     start_date = date(2015, 1, 1)
@@ -303,6 +329,8 @@ def main():
     # Use st.sidebar.date_input for the End Date
     end_date = date(2023, 12, 12)
     end_input = st.sidebar.date_input('Enter End Date', end_date)
+
+    train_test_proportion = st.sidebar.slider('Train-Test Proportion', 0.1, 0.99, 0.95, step=0.01)
 
     # Convert date objects to strings before concatenating with other strings
     start_input = start_input.strftime("%Y-%m-%d")
@@ -341,14 +369,14 @@ def main():
         st.title("PECNET Page")
         # Call the respective page function and display a "Processing" notification
         with st.spinner("Processing..."):
-            pecnet_page(df)
+            pecnet_page(df, train_test_proportion)
         st.success("Processing complete!")
 
     elif page == "Backtest Results":
         st.title("Backtest Results Page")
         # Call the respective page function and display a "Processing" notification
         with st.spinner("Processing..."):
-            backtest_page(df)
+            backtest_page(df, user_input)
         st.success("Processing complete!")
 
 if __name__ == "__main__":

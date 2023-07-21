@@ -105,7 +105,22 @@ class IterativeBase():
         self.trades += 1
         perf = (self.current_balance - self.initial_balance) / self.initial_balance * 100
         self.print_current_balance(bar)
+        st.write(75 * "-")
         print("{} | net performance (%) = {}".format(date, round(perf, 2) ))
+
+        text = "Net Performance (%) " + str(perf)
+        color = "blue"
+        # Create a box with custom colored text using Markdown
+        styled_text = f'<div style="color: {color}; font-size: 24px; padding: 10px; text-align: center; border: 1px solid {color}; border-radius: 5px;">{text}</div>'
+        st.markdown(styled_text, unsafe_allow_html=True)
+
+        text = "Number of Trades Executed = " + str(self.trades)
+        color = "blue"
+        # Create a box with custom colored text using Markdown
+        styled_text = f'<div style="color: {color}; font-size: 24px; padding: 10px; text-align: center; border: 1px solid {color}; border-radius: 5px;">{text}</div>'
+        st.markdown(styled_text, unsafe_allow_html=True)
+        
+        st.write(75 * "-")
         print("{} | number of trades executed = {}".format(date, self.trades))
         print(75 * "-")
         
