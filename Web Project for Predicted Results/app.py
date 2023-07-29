@@ -48,13 +48,13 @@ def home_page(df):
     plt.plot(df.Close, 'b')
     st.pyplot(fig)
 
-def lstm_page(df):
+def lstm_page(df, train_test_proportion):
     # Your content for the data page goes here...
     st.title('Stock Trend Prediction with LSTM')
 
     #Splitting data into Training and Testing
-    data_training = pd.DataFrame(df['Close'][0:int(len(df)*0.7)])
-    data_testing = pd.DataFrame(df['Close'][int(len(df)*0.7):int(len(df))])
+    data_training = pd.DataFrame(df['Close'][0:int(len(df)*train_test_proportion)])
+    data_testing = pd.DataFrame(df['Close'][int(len(df)*train_test_proportion):int(len(df))])
 
     from sklearn.preprocessing import MinMaxScaler
     scaler = MinMaxScaler(feature_range=(0,1))
@@ -88,9 +88,13 @@ def lstm_page(df):
     y_predicted = y_predicted * scale_factor[0]
     y_test = y_test * scale_factor[0]
 
+    #inverse Transform
+    y_test = scaler.inverse_transform(y_test.reshape(-1, 1))
+    y_predicted = scaler.inverse_transform(y_predicted.reshape(-1, 1))
+
     y_test = np.reshape(y_test, (-1,))
     y_predicted = np.reshape(y_predicted, (-1,))
-    ##
+
     lstm_predictions = pd.DataFrame(columns=['Date', 'Original Price', 'Predicted Price'])  # DataFrame to be updated
 
     start_index = len(df) - len(y_predicted)
@@ -113,7 +117,7 @@ def lstm_page(df):
     ###
 
     #Final Graph
-    st.subheader('[LSTM] Predictions vs Original')
+    st.subheader('[LSTM] Predictions vs Original with MinMaxScaler')
     #lstm_predictions = pd.DataFrame({'Original Price': y_test, 'Predicted Price': y_predicted})
     st.dataframe(lstm_predictions, use_container_width=True)
 
@@ -130,6 +134,11 @@ def lstm_page(df):
     plt.ylabel('Price')
     plt.legend()
     st.pyplot(fig2)
+
+    dict = {'Date': 'date', 'Original Price': 'price', 'Predicted Price': 'pred'}
+    lstm_predictions.rename(columns=dict, inplace=True)
+    lstm_predictions.drop(index=lstm_predictions.index[0], axis=0, inplace=True)
+    lstm_predictions.to_csv('backtest_lstm.csv', index=False, encoding='utf-8')
 
 
 
@@ -204,6 +213,21 @@ def facebook_prophet_page(df):
     plt.legend(loc="upper left")
     st.pyplot(fig3)
 
+    # Dictionary to rename columns
+    rename_dict = {'ds': 'date', 'y': 'price', 'yhat': 'pred'}
+    df.rename(columns=rename_dict, inplace=True)
+
+    # Drop the first row (if needed)
+    df.drop(index=df.index[0], axis=0, inplace=True)
+
+    # Select only the desired columns to create a new DataFrame
+    selected_columns = ['date', 'price', 'pred']
+    new_df = df[selected_columns].copy()
+    new_df = new_df.iloc[101:].copy()
+
+    # Save the new DataFrame to a CSV file
+    new_df.to_csv('backtest_prophet.csv', index=False, encoding='utf-8')
+
 
 
 
@@ -220,8 +244,6 @@ def pecnet_page(df, train_test_proportion):
 
     frame.to_csv('/home/oguz/Desktop/GradProject-main/Web Project for Predicted Results/file1.csv', float_format='%.6f', header=False, index=False)
     final_y_test, final_y_train, input_data = pecnet(train_test_proportion)
-    st.write(f"Next Day Prediction: {final_y_test[-1]}")
-    print("Prediction is:",final_y_test[-1])
 
     df2 = pd.DataFrame(columns=['date', 'real', 'prediction'])  # DataFrame to be updated
 
@@ -253,7 +275,7 @@ def pecnet_page(df, train_test_proportion):
     df2['date'].fillna(last_valid_date + pd.DateOffset(days=1), inplace=True)
 
     #Visualizations
-    st.dataframe(df2, use_container_width=True)
+    st.dataframe(df2[1:], use_container_width=True)
 
     st.subheader('[PECNET] Real vs Predicted in Test Data')
     fig4 = plt.figure(figsize=(18,6))
@@ -262,8 +284,8 @@ def pecnet_page(df, train_test_proportion):
     plt.legend(loc="upper left")
     st.pyplot(fig4)
 
-    st.write(f"Current Price is: {df2['real'].iloc[-2]}")
-    st.write(f"Next Day's Close Prediction: {final_y_test[-1]}")
+    st.write(f"Current Price is: {round(df2['real'].iloc[-2],2)}")
+    st.write(f"Next Day's Close Prediction: {round(final_y_test[-1],2)}")
 
     if  final_y_test[-1] > df2['real'].iloc[-2]:
         text = "Suggesting to Buy"
@@ -292,24 +314,37 @@ def backtest_page(df, user_input):
     st.header('Backtest Results')
     st.subheader('Pecnet Test Results')
 
-    bc = IterativeBacktest(user_input, "2020-01-01", "2023-12-12", 10000, use_prediction = True, csv_file_path = "backtest_pecnet.csv")
-
+    bc = IterativeBacktest(user_input, "2015-01-01", "2023-12-12", 10000, use_prediction = True, csv_file_path = "backtest_pecnet.csv")
     bc.test_my_strategy()
-
     st.dataframe(bc.data, use_container_width=True)
-
     st.dataframe(bc.positions, use_container_width=True)
-
     bc.plot_data()
-
     px.line(bc.positions, x='date', y=['current_balance'])
-
     bc.plot_pretty_balance()
-
     bc.plot_pnl_price()
-
     bc.plot_prettier()
 
+    st.subheader('LSTM Test Results')
+    bcl = IterativeBacktest(user_input, "2015-01-01", "2023-12-12", 10000, use_prediction = True, csv_file_path = "backtest_lstm.csv")
+    bcl.test_my_strategy()
+    st.dataframe(bcl.data, use_container_width=True)
+    st.dataframe(bcl.positions, use_container_width=True)
+    bcl.plot_data()
+    px.line(bcl.positions, x='date', y=['current_balance'])
+    bcl.plot_pretty_balance()
+    bcl.plot_pnl_price()
+    bcl.plot_prettier()
+
+    st.subheader('Facebook Prophet Test Results')
+    bcl = IterativeBacktest(user_input, "2015-01-01", "2023-12-12", 10000, use_prediction = True, csv_file_path = "backtest_prophet.csv")
+    bcl.test_my_strategy()
+    st.dataframe(bcl.data, use_container_width=True)
+    st.dataframe(bcl.positions, use_container_width=True)
+    bcl.plot_data()
+    px.line(bcl.positions, x='date', y=['current_balance'])
+    bcl.plot_pretty_balance()
+    bcl.plot_pnl_price()
+    bcl.plot_prettier()
 
 
 def main():
@@ -330,7 +365,7 @@ def main():
     end_date = date(2023, 12, 12)
     end_input = st.sidebar.date_input('Enter End Date', end_date)
 
-    train_test_proportion = st.sidebar.slider('Train-Test Proportion', 0.1, 0.99, 0.95, step=0.01)
+    train_test_proportion = st.sidebar.slider('Train-Test Proportion (Only Applicable for PECNET and LSTM)', 0.1, 0.99, 0.95, step=0.01)
 
     # Convert date objects to strings before concatenating with other strings
     start_input = start_input.strftime("%Y-%m-%d")
@@ -339,10 +374,7 @@ def main():
     df = yf.download(user_input, start_input, end_input)
     df = df.reset_index()  
 
-    #Describing Data
-    st.subheader(user_input + ' Data from ' + start_input + ' to ' + end_input)
-    st.dataframe(df.describe(), use_container_width=True)
-    st.dataframe(df, use_container_width=True)
+
 
     if page == "Stock Details":
         st.title("Stock Details Page")
@@ -355,7 +387,7 @@ def main():
         st.title("LSTM Results Page")
         # Call the respective page function and display a "Processing" notification
         with st.spinner("Processing..."):
-            lstm_page(df)
+            lstm_page(df, train_test_proportion)
         st.success("Processing complete!")
 
     elif page == "Facebook Prophet":

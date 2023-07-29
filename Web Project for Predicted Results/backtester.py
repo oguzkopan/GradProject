@@ -108,7 +108,7 @@ class IterativeBase():
         st.write(75 * "-")
         print("{} | net performance (%) = {}".format(date, round(perf, 2) ))
 
-        text = "Net Performance (%) " + str(perf)
+        text = "Net Performance (%) " + str(round(perf,2))
         color = "blue"
         # Create a box with custom colored text using Markdown
         styled_text = f'<div style="color: {color}; font-size: 24px; padding: 10px; text-align: center; border: 1px solid {color}; border-radius: 5px;">{text}</div>'
@@ -272,7 +272,7 @@ class IterativeBacktest(IterativeBase):
     def test_my_strategy(self):
         
         # nice printout
-        ma = "Testing PECNET Results on | {} ".format(self.symbol)
+        ma = "Testing Backtest Results on | {} ".format(self.symbol)
         st.write(ma)
         
         # reset 
